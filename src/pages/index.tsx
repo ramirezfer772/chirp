@@ -1,11 +1,15 @@
 import { type NextPage } from "next";
-import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
-// import Link from "next/link";
-import { RouterOutputs, api } from "~/utils/api";
+
+import { api } from "~/utils/api";
+import type { RouterOutputs } from "~/utils/api";
 
 import { SignIn, useUser, UserButton } from "@clerk/nextjs";
-import { number } from "zod";
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime"
+
+dayjs.extend(relativeTime)
 
 const Home: NextPage = () => {
   const { data, isLoading } = api.posts.getAll.useQuery();
@@ -34,8 +38,12 @@ const Home: NextPage = () => {
     const { post, author } = props;
     return (
       <div key={post.id} className="border-b border-slate-400 p-8">
-        {post.content}
-        <p>{author.username}</p>
+
+        <span>{author.username}</span>
+        <span className="font-thin">{` . ${dayjs(post.createdAt).fromNow()}`}</span>
+
+        <p>{post.content} </p>
+
       </div>
     );
   };
