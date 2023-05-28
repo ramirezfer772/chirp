@@ -7,7 +7,8 @@ import { api } from "~/utils/api";
 import { SignIn, useUser } from "@clerk/nextjs";
 
 const Home: NextPage = () => {
-  // const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const {data } = api.posts.getAll.useQuery()
+  console.log("🚀 ~ file: index.tsx:11 ~ data:", data)
 
   const user = useUser()
   console.log("🚀 ~ file: index.tsx:13 ~ user:", user)
@@ -21,6 +22,11 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
+
+        {
+          data?.map((post) => (<div key={post.id}>{post.title}</div>))
+        }
+
       </main>
     </>
   );
@@ -28,26 +34,26 @@ const Home: NextPage = () => {
 
 export default Home;
 
-const AuthShowcase: React.FC = () => {
-  const { data: sessionData } = useSession();
+// const AuthShowcase: React.FC = () => {
+//   const { data: sessionData } = useSession();
 
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
+//   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
+//     undefined, // no input
+//     { enabled: sessionData?.user !== undefined }
+//   );
 
-  return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-center text-2xl text-white">
-        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-        {secretMessage && <span> - {secretMessage}</span>}
-      </p>
-      <button
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={sessionData ? () => void signOut() : () => void signIn()}
-      >
-        {sessionData ? "Sign out" : "Sign in"}
-      </button>
-    </div>
-  );
-};
+//   return (
+//     <div className="flex flex-col items-center justify-center gap-4">
+//       <p className="text-center text-2xl text-white">
+//         {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
+//         {secretMessage && <span> - {secretMessage}</span>}
+//       </p>
+//       <button
+//         className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+//         onClick={sessionData ? () => void signOut() : () => void signIn()}
+//       >
+//         {sessionData ? "Sign out" : "Sign in"}
+//       </button>
+//     </div>
+//   );
+// };
