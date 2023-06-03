@@ -1,14 +1,17 @@
+import {useState} from "react"
+
 import { type NextPage } from "next";
 import Head from "next/head";
 
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 
-import { SignIn, useUser, UserButton } from "@clerk/nextjs";
+import { SignIn, useUser, UserButton, useSession } from "@clerk/nextjs";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingPage } from "~/components/loading";
+
 
 dayjs.extend(relativeTime);
 
@@ -51,6 +54,19 @@ const Home: NextPage = () => {
   if (!userLoaded) return <div />;
 
   const CreatePostWizard = () => {
+    const [input, setInput] = useState("")
+
+    const ctx = api.useContext()
+    
+    const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+      onSuccess: () => {
+        setInput("")
+        void ctx.posts.getAll.invalidate()
+      }
+    })
+
+    // mutate()
+
     if (!isSignedIn) return null;
 
     return (
@@ -58,8 +74,14 @@ const Home: NextPage = () => {
         <h2 className="mb-4">Hi user</h2>
         <input
           placeholder="Type some emojis"
-          className="grow bg-transparent "
+          className="grow bg-transparent"
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
         />
+
+        <button onClick={() => mutate({content: input})}>Post</button>
+
       </div>
     );
   };
