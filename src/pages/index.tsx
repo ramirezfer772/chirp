@@ -7,22 +7,54 @@ import type { RouterOutputs } from "~/utils/api";
 import { SignIn, useUser, UserButton } from "@clerk/nextjs";
 
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime"
+import relativeTime from "dayjs/plugin/relativeTime";
+import { LoadingPage } from "~/components/loading";
 
-dayjs.extend(relativeTime)
+dayjs.extend(relativeTime);
+
+type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+
+const PostView = (props: PostWithUser) => {
+  const { post, author } = props;
+  return (
+    <div key={post.id} className="border-b border-slate-400 p-8">
+      <span>{author.username}</span>
+      <span className="font-thin">{` . ${dayjs(
+        post.createdAt
+      ).fromNow()}`}</span>
+      <p>{post.content} </p>
+    </div>
+  );
+};
+
+const Feed = () => {
+  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
+
+  if (postsLoading) return <LoadingPage />;
+
+  if (!data) return <div>Somehing went wrong</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </div>
+  );
+};
 
 const Home: NextPage = () => {
-  const { data, isLoading } = api.posts.getAll.useQuery();
+  const { user, isSignedIn, isLoaded: userLoaded } = useUser();
 
-  const user = useUser();
-  console.log("🚀 ~ file: index.tsx:13 ~ user:", user);
+  api.posts.getAll.useQuery()
+
+  if (!userLoaded) return <div />;
 
   const CreatePostWizard = () => {
-    if (!user.isSignedIn) return null;
+    if (!isSignedIn) return null;
 
     return (
       <div className="flex w-full gap-4">
-        {/* <img src={user.p} */}
         <h2 className="mb-4">Hi user</h2>
         <input
           placeholder="Type some emojis"
@@ -32,25 +64,10 @@ const Home: NextPage = () => {
     );
   };
 
-  type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 
-  const PostView = (props: PostWithUser) => {
-    const { post, author } = props;
-    return (
-      <div key={post.id} className="border-b border-slate-400 p-8">
+  // if (postsLoaded) return <LoadingPage />;
 
-        <span>{author.username}</span>
-        <span className="font-thin">{` . ${dayjs(post.createdAt).fromNow()}`}</span>
-
-        <p>{post.content} </p>
-
-      </div>
-    );
-  };
-
-  if (isLoading) return <div>Is loading</div>;
-
-  if (!data) return <div>No data</div>;
+  // if (!data) return <div>No data</div>;
 
   return (
     <>
@@ -61,7 +78,7 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex h-screen justify-center">
         <div className="h-full w-full border-x border-slate-400 md:max-w-2xl">
-          {user.isSignedIn ? (
+          {isSignedIn ? (
             <div className="mb-6">
               <UserButton afterSignOutUrl="/" />
               <CreatePostWizard />
@@ -70,9 +87,8 @@ const Home: NextPage = () => {
 
           <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
 
-          {[...data]?.map((fullPost) => (
-            <PostView key={fullPost.post.id} {...fullPost} />
-          ))}
+          <Feed />
+
         </div>
       </main>
     </>
