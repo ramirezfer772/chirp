@@ -12,10 +12,15 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingPage } from "~/components/loading";
 
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next';
+import { toast } from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+
+type Repo = {
+};
 
 const PostView = (props: PostWithUser) => {
   const { post, author } = props;
@@ -62,6 +67,9 @@ const Home: NextPage = () => {
       onSuccess: () => {
         setInput("")
         void ctx.posts.getAll.invalidate()
+      },
+      onError: (e) => {
+        toast.error("Failed to post!, Please try again later. " + e.data?.zodError?.fieldErrors?.content[0]!)
       }
     })
 
@@ -116,6 +124,12 @@ const Home: NextPage = () => {
     </>
   );
 };
+
+// export const getServerSideProps: GetServerSideProps = async () => {
+//   const { data} = api.posts.getAll.useQuery();
+//   console.log("🚀 ~ file: index.tsx:128 ~ constgetServerSideProps:GetServerSideProps= ~ data:", data)
+//   return { props: {  } };
+// };
 
 export default Home;
 
