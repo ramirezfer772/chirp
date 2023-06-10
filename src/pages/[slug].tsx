@@ -1,14 +1,23 @@
-import {useState} from "react"
-
-import { type NextPage } from "next";
+import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 
-import { useUser } from "@clerk/nextjs";
+// import { useUser } from "@clerk/nextjs";
+import { api } from "~/utils/api";
 
-const ProfilePage: NextPage = () => {
-  const { isSignedIn, isLoaded: userLoaded } = useUser();
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 
-  if (!userLoaded) return <div />;
+// type PageProps = InferGetStaticPropsType<typeof getStaticProps>
+
+const ProfilePage: NextPage<{username: string}> = ({username}) => {
+  const {data, isLoading } = api.profile.getUserByUsername.useQuery({username})
+
+  if (isLoading) {
+    console.log("is loading !!!")
+  }
+
+  if (!data) return <div>404</div>
+
+  console.log("🚀 ~ file: [slug].tsx:13 ~ data:", data)
 
   return (
     <>
@@ -24,34 +33,30 @@ const ProfilePage: NextPage = () => {
   );
 };
 
-// export const getServerSideProps: GetServerSideProps = async () => {
-//   const { data} = api.posts.getAll.useQuery();
-//   console.log("🚀 ~ file: index.tsx:128 ~ constgetServerSideProps:GetServerSideProps= ~ data:", data)
-//   return { props: {  } };
-// };
+export const getStaticProps: GetStaticProps = async (ctx) => {
+  const ssg = generateSSGHelper()
+
+  const slug = ctx.params?.slug
+
+  if (typeof slug !== "string") throw new Error("No slug provided")
+
+  const username = slug.replace("@", "")
+
+  await ssg.profile.getUserByUsername.prefetch({username})
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      username,
+    }
+  }
+}
+
+export async function getStaticPaths() {
+  return {
+    paths: [],
+    fallback: "blocking",
+  }
+}
 
 export default ProfilePage;
-
-// const AuthShowcase: React.FC = () => {
-//   const { data: sessionData } = useSession();
-
-//   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-//     undefined, // no input
-//     { enabled: sessionData?.user !== undefined }
-//   );
-
-//   return (
-//     <div className="flex flex-col items-center justify-center gap-4">
-//       <p className="text-center text-2xl text-white">
-//         {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-//         {secretMessage && <span> - {secretMessage}</span>}
-//       </p>
-//       <button
-//         className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-//         onClick={sessionData ? () => void signOut() : () => void signIn()}
-//       >
-//         {sessionData ? "Sign out" : "Sign in"}
-//       </button>
-//     </div>
-//   );
-// };
