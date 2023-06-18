@@ -74,6 +74,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  */
 export const createTRPCRouter = t.router;
 
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -98,3 +99,10 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
 });
 
 export const privateProcedure = t.procedure.use(enforceUserIsAuthed);
+
+const isAdminMiddleware = t.middleware(({ ctx, next }) => {
+  console.log("Testing middleware");
+  return next({ ctx: { user: { id: 1 } } });
+});
+
+export const adminProcedure = t.procedure.use(isAdminMiddleware);

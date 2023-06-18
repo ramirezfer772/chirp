@@ -1,7 +1,11 @@
 import { createNextApiHandler } from "@trpc/server/adapters/next";
+import { applyWSSHandler } from "@trpc/server/adapters/ws";
+
 import { env } from "~/env.mjs";
 import { appRouter } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
+
+import ws from "ws"
 
 // export API handler
 export default createNextApiHandler({
@@ -16,3 +20,11 @@ export default createNextApiHandler({
         }
       : undefined,
 });
+
+const wss = new ws.Server({
+  port: 3001,
+});
+
+const handler = applyWSSHandler({ wss, router: appRouter, createContext: () => {
+  return {isAdmin: true}
+} });

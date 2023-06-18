@@ -76,6 +76,7 @@ const Home: NextPage = () => {
         void ctx.posts.getAll.invalidate()
       },
       onError: (e) => {
+        //@ts-ignore
         toast.error("Failed to post!, Please try again later. " + e.data?.zodError?.fieldErrors?.content[0]!)
       }
     })
