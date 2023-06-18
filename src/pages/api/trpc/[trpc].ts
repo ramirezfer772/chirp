@@ -5,7 +5,7 @@ import { env } from "~/env.mjs";
 import { appRouter } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
 
-import ws from "ws"
+import ws from "ws";
 
 // export API handler
 export default createNextApiHandler({
@@ -15,16 +15,14 @@ export default createNextApiHandler({
     env.NODE_ENV === "development"
       ? ({ path, error }) => {
           console.error(
-            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
+            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
           );
         }
       : undefined,
 });
 
-const wss = new ws.Server({
-  port: 3001,
-});
+// const wss = new ws.Server({
+//   port: 3001,
+// });
 
-const handler = applyWSSHandler({ wss, router: appRouter, createContext: () => {
-  return {isAdmin: true}
-} });
+// https://github.com/trpc/examples-next-prisma-websockets-starter/tree/main
